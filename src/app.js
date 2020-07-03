@@ -2,6 +2,9 @@ const path = require('path')
 const express = require('express')
 const hbs = require('hbs')
 
+const forecast = require('./utils/forecast');
+const geolocation = require('./utils/geolocation');
+
 const app = express()
 
 // Define paths for Express config
@@ -40,9 +43,46 @@ app.get('/help', (req, res) => {
 })
 
 app.get('/weather', (req, res) => {
+    const address = req.query.address;
+    if(!address){
+        return res.send({
+            error: 'Address not provided'
+        })
+    }
+    geolocation(address, (error, {latitude, longitude}={})=>{
+        if(error){
+            return res.send({
+                error: error
+            })
+        }
+
+        forecast(latitude, longitude,(err,data)=>{
+            if(err){
+                return res.send({
+                    error
+                })
+            }
+            return res.send({
+                forecast: data,
+                address: address
+            })
+        })
+    })
+    // res.send({
+    //     forecast: 'It is snowing',
+    //     location: req.query.address
+    // })
+})
+
+app.get('/products', (req, res) => {
+    console.log(req.query.name)
+    if(!req.query.name){
+        return res.send({
+            error: 'No name provided'
+        })
+    }
     res.send({
-        forecast: 'It is snowing',
-        location: 'Philadelphia'
+        products : []
     })
 })
 
